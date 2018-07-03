@@ -55,7 +55,7 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function registerControllerClass(string $controllerClass):void
     {
-        if (is_subclass_of($controllerClass, ControllerInterface::class)) {
+        if (!is_subclass_of($controllerClass, ControllerInterface::class)) {
             throw new NotAControllerException($controllerClass);
         }
         /** @var $controllerClass ControllerInterface */
@@ -68,7 +68,7 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function setNotFoundControllerClass(string $notFoundControllerClass):void
     {
-        if (is_subclass_of($notFoundControllerClass, ControllerInterface::class)) {
+        if (!is_subclass_of($notFoundControllerClass, ControllerInterface::class)) {
             throw new NotAControllerException($notFoundControllerClass);
         }
         $this->notFoundControllerClass = $notFoundControllerClass;
