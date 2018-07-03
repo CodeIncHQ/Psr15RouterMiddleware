@@ -21,7 +21,7 @@ class AnotherPage extends AbstractController
     public static function getUriPath():string { return '/another-page.html'; }   
     public function process():ResponseInterface { return new HtmlResponse("<h1>Another page</h1>"); }
 }
-class NotFoundPage extends AbstractController
+class NotFound extends AbstractController
 {
     public static function getUriPath():string { return '/error404.html'; }   
     public function process():ResponseInterface { return new HtmlResponse("<h1>Page not found</h1>"); }
@@ -30,7 +30,7 @@ class NotFoundPage extends AbstractController
 $router = new RouterMiddleware();
 $router->registerControllerClass(HomePage::class);
 $router->registerControllerClass(AnotherPage::class);
-$router->setNotFoundControllerClass(NotFoundPage::class);
+$router->setNotFoundControllerClass(NotFound::class);
 ```
 
 ## Installation
