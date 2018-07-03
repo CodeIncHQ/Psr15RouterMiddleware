@@ -1,7 +1,7 @@
 {
   "name": "codeinc/psr15-router-middleware",
-  "version": "1.0.1",
-  "description": "Code Inc. PSR-7 response senders",
+  "version": "1.0.2",
+  "description": "A PSR-15 router middleware",
   "homepage": "https://github.com/CodeIncHQ/Psr15RouterMiddleware",
   "type": "library",
   "license": "MIT",

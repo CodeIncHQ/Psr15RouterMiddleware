@@ -1,4 +1,4 @@
-# PSR-7 response sender
+# PSR-15 router middleware
 
 This library is a very simple [PSR-15](https://www.php-fig.org/psr/psr-15/) controller router [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) written in PHP 7.1.
 
