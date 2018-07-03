@@ -50,6 +50,22 @@ class RouterMiddleware implements MiddlewareInterface
     private $notFoundControllerClass;
 
     /**
+     * @var bool
+     */
+    private $sendNotFoundResponse;
+
+    /**
+     * RouterMiddleware constructor.
+     *
+     * @param bool $sendNotFoundResponse Defines if the router must send a not found response (either from a not found
+     *     controller or a NotFoundResponse object) or should call the next request handler.
+     */
+    public function __construct(bool $sendNotFoundResponse = true)
+    {
+        $this->sendNotFoundResponse = $sendNotFoundResponse;
+    }
+
+    /**
      * @param string $controllerClass
      * @throws NotAControllerException
      */
@@ -59,19 +75,37 @@ class RouterMiddleware implements MiddlewareInterface
             throw new NotAControllerException($controllerClass);
         }
         /** @var $controllerClass ControllerInterface */
-        $this->controllersClass[$controllerClass::getUriPath()] = $controllerClass;
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $this->mapPathToController($controllerClass::getUriPath(), $controllerClass);
     }
 
     /**
-     * @param string $notFoundControllerClass
-     * @throws NotAControllerException
+     * Maps a path to a controller.
+     *
+     * @param string $path
+     * @param string $controllerClass
      */
-    public function setNotFoundControllerClass(string $notFoundControllerClass):void
+    protected function mapPathToController(string $path, string $controllerClass):void
+    {
+        $this->controllersClass[$path] = $controllerClass;
+    }
+
+    /**
+     * Sets the controller called if no other controller is found to handle the request.
+     *
+     * @param string $notFoundControllerClass
+     * @param bool $mapPath
+     */
+    public function setNotFoundControllerClass(string $notFoundControllerClass, bool $mapPath = true):void
     {
         if (!is_subclass_of($notFoundControllerClass, ControllerInterface::class)) {
             throw new NotAControllerException($notFoundControllerClass);
         }
+        /** @var $notFoundControllerClass ControllerInterface */
         $this->notFoundControllerClass = $notFoundControllerClass;
+        if ($mapPath) {
+            $this->mapPathToController($notFoundControllerClass::getUriPath(), $notFoundControllerClass);
+        }
     }
 
     /**
@@ -81,15 +115,25 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
     {
+        // processes the request using the controller
         $controllerClass = $this->controllersClass[$request->getUri()->getPath()] ?? null;
         if ($controllerClass) {
             return $this->processController($controllerClass, $request);
         }
-        elseif ($this->notFoundControllerClass) {
-            return $this->processController($this->notFoundControllerClass, $request);
+
+        // if not controller is found -> sends a not found response
+        elseif ($this->sendNotFoundResponse) {
+            if ($this->notFoundControllerClass) {
+                return $this->processController($this->notFoundControllerClass, $request);
+            }
+            else {
+                return new NotFoundResponse();
+            }
         }
+
+        // else if not found responses are disabled -> calls the next request handler
         else {
-            return new NotFoundResponse();
+            return $handler->handle($request);
         }
     }
 
