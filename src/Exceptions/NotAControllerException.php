@@ -45,7 +45,7 @@ class NotAControllerException extends RouterMiddlewareException
      * @param int $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $controllerClass, int $code = 0, Throwable $previous = null)
+    public function __construct(string $controllerClass, int $code = 0, ?Throwable $previous = null)
     {
         $this->controllerClass = $controllerClass;
         parent::__construct(
