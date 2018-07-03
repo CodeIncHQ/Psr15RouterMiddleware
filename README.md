@@ -1,34 +1,44 @@
 # PSR-7 response sender
 
-This library is a companion to the [`lib-router`](https://github.com/CodeIncHQ/lib-router) written in PHP 7. It provides the `ResponseSender` responder to stream [PSR-7](https://www.php-fig.org/psr/psr-7/) [responses](https://www.php-fig.org/psr/psr-7/#33-psrhttpmessageresponseinterface) to a web browser and the interface `ResponseSenderInterface` for PSR-7 reponse senders. 
-
-A response sender is capable of streaming anything implementing the PSR-7 [`ResponseInterface`](https://www.php-fig.org/psr/psr-7/#33-psrhttpmessageresponseinterface).
+This library is a very simple [PSR-15](https://www.php-fig.org/psr/psr-15/) controller router [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) written in PHP 7.1.
 
 ## Usage
 
 ```php
 <?php
-use CodeInc\PSR7ResponseSender\ResponseSender;
-use GuzzleHttp\Psr7\Response;
+use CodeInc\Psr15RouterMiddleware\RouterMiddleware;
+use CodeInc\Psr15RouterMiddleware\AbstractController;
+use CodeInc\Psr7Responses\HtmlResponse;
+use Psr\Http\Message\ResponseInterface;
 
-// a response can be anything implementing ResponseInterface, here the Guzzle implementation
-$response = new Response();
+class HomePage extends AbstractController 
+{
+    public static function getUriPath():string { return '/'; }   
+    public function process():ResponseInterface { return new HtmlResponse("<h1>Hello world!</h1>"); }
+}
+class AnotherPage extends AbstractController
+{
+    public static function getUriPath():string { return '/another-page.html'; }   
+    public function process():ResponseInterface { return new HtmlResponse("<h1>Another page</h1>"); }
+}
+class NotFound extends AbstractController
+{
+    public static function getUriPath():string { return '/error404.html'; }   
+    public function process():ResponseInterface { return new HtmlResponse("<h1>Page not found</h1>"); }
+}
 
-// sends the response to the web browser
-$sender = new ResponseSender();
-$sender->send($response);
+$router = new RouterMiddleware();
+$router->registerControllerClass(HomePage::class);
+$router->registerControllerClass(AnotherPage::class);
+$router->setNotFoundControllerClass(NotFound::class);
 ```
-
-By default `ResponseSender` removes all PHP native HTTP headers. You can change this behavior using the boolean constructor operator or using the methods `removePhpHttpHeaders()` and `sendPhpHttpHeaders()`.   
-
-A second class `GzResponseSender` is provived to send gzip compressed responses using [`ob_start()`](http://php.net/manual/function.ob-start.php) and [`ob_gzhandler()`](http://php.net/manual/function.ob-gzhandler.php)
 
 ## Installation
 
-This library is available through [Packagist](https://packagist.org/packages/codeinc/psr7-response-sender) and can be installed using [Composer](https://getcomposer.org/): 
+This library is available through [Packagist](https://packagist.org/packages/codeinc/psr15-router-middleware) and can be installed using [Composer](https://getcomposer.org/): 
 
 ```bash
-composer require codeinc/psr7-response-sender
+composer require codeinc/psr15-router-middleware
 ```
 
 ## License 
