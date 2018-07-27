@@ -21,6 +21,7 @@
 //
 declare(strict_types=1);
 namespace CodeInc\Psr15RouterMiddleware\Exceptions;
+use CodeInc\Psr15RouterMiddleware\ControllerInterface;
 use Throwable;
 
 
@@ -33,32 +34,32 @@ use Throwable;
 class ControllerProcessingException extends RouterMiddlewareException
 {
     /**
-     * @var string
+     * @var ControllerInterface
      */
-    private $controllerClass;
+    private $controller;
 
     /**
      * ControllerProcessingException constructor.
      *
-     * @param string $controllerClass
+     * @param ControllerInterface $controller
      * @param int $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $controllerClass, int $code = 0, ?Throwable $previous = null)
+    public function __construct(ControllerInterface $controller, int $code = 0, ?Throwable $previous = null)
     {
-        $this->controllerClass = $controllerClass;
+        $this->controller = $controller;
         parent::__construct(
-            sprintf("Error while processing the controller '%s'", $controllerClass),
+            sprintf("Error while processing the controller '%s'", $controller),
             $code,
             $previous
         );
     }
 
     /**
-     * @return string
+     * @return ControllerInterface
      */
-    public function getControllerClass():string
+    public function getController():ControllerInterface
     {
-        return $this->controllerClass;
+        return $this->controller;
     }
 }

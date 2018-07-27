@@ -16,33 +16,49 @@
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     03/07/2018
-// Time:     13:03
+// Time:     14:31
 // Project:  Psr15RouterMiddleware
 //
 declare(strict_types=1);
-namespace CodeInc\Psr15RouterMiddleware;
-use Psr\Http\Message\ResponseInterface;
+namespace CodeInc\Psr15RouterMiddleware\Exceptions;
+use Throwable;
 
 
 /**
- * Interface ControllerInterface
+ * Class ControllerInstantiatingException
  *
- * @package CodeInc\Psr15RouterMiddleware
+ * @package CodeInc\Psr15RouterMiddleware\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-interface ControllerInterface
+class ControllerInstantiatingException extends RouterMiddlewareException
 {
     /**
-     * Executes the controller. This method must returns a PSR-7 response or throw an exception.
-     *
-     * @return ResponseInterface
+     * @var string
      */
-    public function getResponse():ResponseInterface;
+    private $controllerClass;
 
     /**
-     * Returns the controller's URI path.
+     * ControllerInstantiatingException constructor.
      *
+     * @param string $controllerClass
+     * @param int $code
+     * @param null|Throwable $previous
+     */
+    public function __construct(string $controllerClass, int $code = 0, ?Throwable $previous = null)
+    {
+        $this->controllerClass = $controllerClass;
+        parent::__construct(
+            sprintf("Error while instantiating the controller '%s'", $controllerClass),
+            $code,
+            $previous
+        );
+    }
+
+    /**
      * @return string
      */
-    public static function getUriPath():string;
+    public function getControllerClass():string
+    {
+        return $this->controllerClass;
+    }
 }
