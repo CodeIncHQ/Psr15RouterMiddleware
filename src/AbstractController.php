@@ -35,7 +35,7 @@ abstract class AbstractController implements ControllerInterface
     /**
      * @var ServerRequestInterface
      */
-    private $_request;
+    private $request;
 
     /**
      * AbstractController constructor.
@@ -44,14 +44,14 @@ abstract class AbstractController implements ControllerInterface
      */
     public function __construct(ServerRequestInterface $request)
     {
-        $this->_request = $request;
+        $this->request = $request;
     }
 
     /**
      * @return ServerRequestInterface
      */
-    public function _request():ServerRequestInterface
+    public function request():ServerRequestInterface
     {
-        return $this->_request;
+        return $this->request;
     }
 }
