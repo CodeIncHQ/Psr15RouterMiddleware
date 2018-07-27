@@ -21,6 +21,7 @@
 //
 declare(strict_types=1);
 namespace CodeInc\Psr15RouterMiddleware;
+use CodeInc\Psr15RouterMiddleware\Exceptions\ControllerInstantiatingException;
 use CodeInc\Psr15RouterMiddleware\Exceptions\ControllerProcessingException;
 use CodeInc\Psr15RouterMiddleware\Exceptions\NotAControllerException;
 use CodeInc\Psr7Responses\NotFoundResponse;
@@ -69,7 +70,7 @@ class RouterMiddleware implements MiddlewareInterface
      * @param string $controllerClass
      * @throws NotAControllerException
      */
-    public function registerControllerClass(string $controllerClass):void
+    public function registerController(string $controllerClass):void
     {
         if (!is_subclass_of($controllerClass, ControllerInterface::class)) {
             throw new NotAControllerException($controllerClass);
@@ -96,7 +97,7 @@ class RouterMiddleware implements MiddlewareInterface
      * @param string $notFoundControllerClass
      * @param bool $mapPath
      */
-    public function setNotFoundControllerClass(string $notFoundControllerClass, bool $mapPath = true):void
+    public function setNotFoundController(string $notFoundControllerClass, bool $mapPath = true):void
     {
         if (!is_subclass_of($notFoundControllerClass, ControllerInterface::class)) {
             throw new NotAControllerException($notFoundControllerClass);
@@ -109,6 +110,7 @@ class RouterMiddleware implements MiddlewareInterface
     }
 
     /**
+     * @inheritdoc
      * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
@@ -117,14 +119,18 @@ class RouterMiddleware implements MiddlewareInterface
     {
         // processes the request using the controller
         $controllerClass = $this->controllersClass[$request->getUri()->getPath()] ?? null;
-        if ($controllerClass) {
-            return $this->processController($controllerClass, $request);
+        if (!$controllerClass) {
+            return $this->executeController(
+                $this->instantiateController($controllerClass, $request)
+            );
         }
 
         // if not controller is found -> sends a not found response
         elseif ($this->sendNotFoundResponse) {
             if ($this->notFoundControllerClass) {
-                return $this->processController($this->notFoundControllerClass, $request);
+                return $this->executeController(
+                    $this->instantiateController($this->notFoundControllerClass, $request)
+                );
             }
             else {
                 return new NotFoundResponse();
@@ -138,20 +144,36 @@ class RouterMiddleware implements MiddlewareInterface
     }
 
     /**
+     * Instantiates a controller.
+     *
      * @param string $controllerClass
      * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     * @throws ControllerProcessingException
+     * @return ControllerInterface
      */
-    private function processController(string $controllerClass, ServerRequestInterface $request):ResponseInterface
+    protected function instantiateController(string $controllerClass,
+        ServerRequestInterface $request):ControllerInterface
     {
         try {
-            /** @var ControllerInterface $controller */
-            $controller = new $controllerClass($request);
-            return $controller->process();
+            return new $controllerClass($request);
         }
         catch (Throwable $exception) {
-            throw new ControllerProcessingException($controllerClass, 0, $exception);
+            throw new ControllerInstantiatingException($controllerClass, 0, $exception);
+        }
+    }
+
+    /**
+     * Executes a controller.
+     *
+     * @param ControllerInterface $controller
+     * @return ResponseInterface
+     */
+    protected function executeController(ControllerInterface $controller):ResponseInterface
+    {
+        try {
+            return $controller->getResponse();
+        }
+        catch (Throwable $exception) {
+            throw new ControllerProcessingException($controller, 0, $exception);
         }
     }
 }
