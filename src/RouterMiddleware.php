@@ -43,12 +43,12 @@ class RouterMiddleware implements MiddlewareInterface
     /**
      * @var string[]
      */
-    private $controllersClass;
+    private $controllers;
 
     /**
      * @var string|null
      */
-    private $notFoundControllerClass;
+    private $notFoundController;
 
     /**
      * @var bool
@@ -88,7 +88,7 @@ class RouterMiddleware implements MiddlewareInterface
      */
     protected function mapPathToController(string $path, string $controllerClass):void
     {
-        $this->controllersClass[$path] = $controllerClass;
+        $this->controllers[$path] = $controllerClass;
     }
 
     /**
@@ -103,7 +103,7 @@ class RouterMiddleware implements MiddlewareInterface
             throw new NotAControllerException($notFoundControllerClass);
         }
         /** @var $notFoundControllerClass ControllerInterface */
-        $this->notFoundControllerClass = $notFoundControllerClass;
+        $this->notFoundController = $notFoundControllerClass;
         if ($mapPath) {
             $this->mapPathToController($notFoundControllerClass::getUriPath(), $notFoundControllerClass);
         }
@@ -118,18 +118,20 @@ class RouterMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
     {
         // processes the request using the controller
-        $controllerClass = $this->controllersClass[$request->getUri()->getPath()] ?? null;
-        if (!$controllerClass) {
+        if (isset($this->controllers[$request->getUri()->getPath()])) {
             return $this->executeController(
-                $this->instantiateController($controllerClass, $request)
+                $this->instantiateController(
+                    $this->controllers[$request->getUri()->getPath()],
+                    $request
+                )
             );
         }
 
         // if not controller is found -> sends a not found response
         elseif ($this->sendNotFoundResponse) {
-            if ($this->notFoundControllerClass) {
+            if ($this->notFoundController) {
                 return $this->executeController(
-                    $this->instantiateController($this->notFoundControllerClass, $request)
+                    $this->instantiateController($this->notFoundController, $request)
                 );
             }
             else {
