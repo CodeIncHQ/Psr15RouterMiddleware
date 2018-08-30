@@ -49,7 +49,7 @@ class ControllerProcessingException extends RouterMiddlewareException
     {
         $this->controller = $controller;
         parent::__construct(
-            sprintf("Error while processing the controller '%s'", $controller),
+            sprintf("Error while processing the controller '%s'", get_class($controller)),
             $code,
             $previous
         );
